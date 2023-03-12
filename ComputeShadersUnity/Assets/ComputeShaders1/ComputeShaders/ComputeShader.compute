@@ -1,0 +1,73 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel SierpinkskiTriangle
+#pragma kernel SolidRed
+#pragma kernel SolidColour
+#pragma kernel SplitScreen
+#pragma kernel AlternateSplitScreen
+#pragma kernel circle
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+float radius;
+int texResolution;
+float4 colour;
+//The numthreads attribute defines how many thread groups to dispatch.
+[numthreads(8,8,1)]
+void SierpinkskiTriangle (uint3 id : SV_DispatchThreadID)
+{
+    // TODO: insert actual code here!
+
+    //Creates a Sierpinkski triangle (named after Wactaw Sierpinski)
+    //Alpha value is unimportant since its an opaque material. Oher colour channels are clamped between 0 and 1.
+    Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+}
+
+[numthreads(8,8,1)] 
+void SolidRed(uint3 id : SV_DispatchThreadID)
+{
+    Result[id.xy] = float4(1.0, 0.0, 0.0, 0.0);
+}
+
+[numthreads(8,8,1)] 
+void SolidColour(uint3 id : SV_DispatchThreadID)
+{
+    Result[id.xy] = colour;
+}
+
+[numthreads(8,8,1)]
+void SplitScreen(uint3 id: SV_DispatchThreadID, uint3 groupId : SV_GROUPID)
+{
+    int maxIdX = texResolution / 8;
+    int maxIdY = texResolution / 8;
+
+    int halfMaxIdX = maxIdX / 2;
+    int halfMaxIdY = maxIdY / 2;
+
+    Result[id.xy] = float4(groupId.x/halfMaxIdX, groupId.y/halfMaxIdY, 0.0, 0.0);
+
+    //alternative solution below
+}
+
+[numthreads(8,8,1)]
+void AlternateSplitScreen(uint3 id: SV_DISPATCHTHREADID)
+{
+    int halfRes = texResolution >> 1; //right shift by 1 bit - equivalent to dividing by 2
+    Result[id.xy] = float4(step(halfRes, id.x), step(halfRes, id.y), 0.0,0.0); //step(x,y) compares x and y, returning 0 if x is greater and y otherwise.
+}
+
+/*Tests whether a pixel is within a circle*/
+bool WithinCircle(float4 centre, float radius, float4 curPos)
+{
+    return length(centre - curPos) <= radius ? true : false;
+}
+
+[numthreads(8,8,1)]
+void circle(uint3 id: SV_DISPATCHTHREADID)
+{
+    /*DispatchThreadIds start at (0,0) at the bottom left, and go up to (texResolution, texResolution) in the top right. To find the centre of the 
+    circle, we just divide texResolution by 2.*/
+    float4 centre = float4(texResolution/2, texResolution/2,0,0);
+    bool within = WithinCircle(centre, radius, float4(id.xy,0,0));
+    Result[id.xy] = within ? float4(1,1,0,1) : float4(1,0,0,1);
+}
+
