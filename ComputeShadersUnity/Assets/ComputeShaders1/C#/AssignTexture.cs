@@ -13,7 +13,7 @@ public class AssignTexture : MonoBehaviour
 
     Renderer rend;
     RenderTexture renderTexture; //A render texture is a texture that can be rendered to. Its data representation is stored on the GPU.
-    int kernelIndex;
+    int circleKernelIndex;
     void Start()
     {
         //constructor: RenderTexture(Width, height, depth). Our texture has no depth buffer
@@ -35,8 +35,8 @@ public class AssignTexture : MonoBehaviour
 
     private void InitialiseShader() 
     {
-        kernelIndex = computeShader.FindKernel(kernelName);
-        computeShader.SetTexture(kernelIndex, "Result", renderTexture);
+        circleKernelIndex = computeShader.FindKernel(kernelName);
+        computeShader.SetTexture(circleKernelIndex, "Result", renderTexture);
         computeShader.SetInt("texResolution", textureResolution);
         computeShader.SetVector("colour", colour);
         computeShader.SetFloat("radius", radius);
@@ -47,21 +47,21 @@ public class AssignTexture : MonoBehaviour
         int threadGroupSizeZ = 1;
 
         
-        DispatchShader(kernelIndex, threadGroupSizeX, threadGroupSizeY, threadGroupSizeZ);
+        DispatchShader(circleKernelIndex, threadGroupSizeX, threadGroupSizeY, threadGroupSizeZ);
     }
 
-    private void DispatchShader(int kernelIndex, int x, int y, int z) 
+    private void DispatchShader(int circleKernelIndex, int x, int y, int z) 
     {
         //The Dispatch function defines how many thread groups to create in each dimension to run the kernel.
         //Each block of threads is identified by the semantic SV_GroupId. At
-        computeShader.Dispatch(kernelIndex, x, y, z);
+        computeShader.Dispatch(circleKernelIndex, x, y, z);
     }
     // Update is called once per frame
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.U)) 
         {
-            DispatchShader(kernelIndex, textureResolution / 8, textureResolution / 8, 1);
+            DispatchShader(circleKernelIndex, textureResolution / 8, textureResolution / 8, 1);
         }
     }
 }
