@@ -1,0 +1,72 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel Circles
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+int texResolution = 1024;
+
+//Returns a pseudo random number in range [0,1]
+float random(float value, float seed = 0.546) 
+{
+    float random = frac(sin(value + seed) * 143758.5432);
+    return random;
+}
+
+float random2(float value) 
+{
+    return float2(
+        random(value, 3.9812),
+        random(value, 7.1536)
+    );
+}
+
+//Draws a single point on the circumference of a circle
+void plot1(int x, int y, int2 centre) 
+{
+    Result[uint2(centre.x + x, centre.y + y)] = float4(1, 0, 0, 1);
+}
+//Draws 8 points on the circumference of a circle
+//We know that a circle has an infinite number of lines of symmetry. We'll approximate this with 8 lines of symmetry
+void plot8(int x, int y, int2 centre) 
+{
+    plot1(x, y, centre);
+    plot1(x, -y, centre);
+    plot1(-x, -y, centre);
+    plot1(-x, y, centre);
+    plot1(y, x, centre);
+    plot1(y,-x, centre);
+    plot1(-y, -x, centre);
+    plot1(-y, x, centre);
+}
+
+void DrawCircle(int2 centre, int radius)
+{
+    int x = 0;
+    int y = radius;
+    int d = 1 - radius;
+
+    while (x < y)
+    {
+        if (d < 0)
+        {
+            d += 2 * x + 3;
+        }
+        else {
+            d += 2 * (x - y) + 5;
+            y--;
+        }
+        plot8(x, y, centre);
+        x++;
+    }
+}
+
+
+
+[numthreads(1,1,1)]
+void Circles(uint3 id: SV_DispatchThreadID) 
+{
+    int2 centre = int2(texResolution / 2, texResolution / 2);
+    int radius = 80;
+    DrawCircle(centre, radius);
+}
