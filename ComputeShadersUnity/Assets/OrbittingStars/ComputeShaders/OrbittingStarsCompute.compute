@@ -1,0 +1,37 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel OrbittingStars
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWStructuredBuffer<float3> Result;
+float time;
+
+/*Note: any random functions that rely on sin or cos repeat every 2 pi radians 
+(ie, rand(x) == rand(x + 2pi)*/
+float random(float value, float seed = 0.546)
+{
+    float res = frac(sin(value + seed) * 143758.5453);
+    return res;
+}
+float3 random3(float value)
+{
+    return float3(
+        random(value, 3.9812),
+        random(value, 7.1536),
+        random(value, 5.7241)
+    );
+}
+
+[numthreads(64,1,1)]
+void OrbittingStars (uint3 id : SV_DispatchThreadID)
+{
+    
+    float3 sinDir = normalize(random3(id.x) - 0.5);//Create a random, 3 component variable, in range -0.5 to 0.5
+    float3 vec = normalize(random3(id.x + 7.1393) - 0.5); //using the addition of 7.1393 means that vec is unlikely to be parallel to sinDir
+    float3 cosDir = normalize(cross(sinDir, vec)); //guarenteed to be at right angles to vec and sinDir
+
+    float scaledTime = time * 0.5 + random(id.x) * 712.131234; //scaled and randomised time.
+
+    float3 pos = sinDir * sin(scaledTime) + cosDir * cos(scaledTime);
+    Result[id.x] = pos * 2;
+}

@@ -1,19 +1,33 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel Circles
+#pragma kernel Clear
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
-RWTexture2D<float4> Result;
+
+//We add a compiler hint to our result, as both our kernels are going to be writing to the same texture
+
+struct circle
+{
+    float2 origin;
+    float2 velocity;
+    float radius;
+};
+StructuredBuffer<circle> circleDataBuffer;
+shared RWTexture2D<float4> Result;
+float4 clearColour;
+float4 circleColour;
+float time;
 int texResolution = 1024;
 
 //Returns a pseudo random number in range [0,1]
 float random(float value, float seed = 0.546) 
 {
-    float random = frac(sin(value + seed) * 143758.5432);
+    float random = (frac(sin(value + seed) * 143758.5453));
     return random;
 }
 
-float random2(float value) 
+float2 random2(float value) 
 {
     return float2(
         random(value, 3.9812),
@@ -24,7 +38,7 @@ float random2(float value)
 //Draws a single point on the circumference of a circle
 void plot1(int x, int y, int2 centre) 
 {
-    Result[uint2(centre.x + x, centre.y + y)] = float4(1, 0, 0, 1);
+    Result[uint2(centre.x + x, centre.y + y)] = circleColour;
 }
 //Draws 8 points on the circumference of a circle
 //We know that a circle has an infinite number of lines of symmetry. We'll approximate this with 8 lines of symmetry
@@ -39,6 +53,8 @@ void plot8(int x, int y, int2 centre)
     plot1(-y, -x, centre);
     plot1(-y, x, centre);
 }
+
+/*To draw the circle, we use a special case of Bresenham's line algorithm'*/
 
 void DrawCircle(int2 centre, int radius)
 {
@@ -61,12 +77,22 @@ void DrawCircle(int2 centre, int radius)
     }
 }
 
-
-
-[numthreads(1,1,1)]
+[numthreads(32,1,1)] //with numthreads as shown, we get 32 * 1 * 1 = 32 threads in each thread group, ie, 32 circles 
 void Circles(uint3 id: SV_DispatchThreadID) 
 {
+    /*
     int2 centre = int2(texResolution / 2, texResolution / 2);
     int radius = 80;
+    Below we randomise the centre and radius of the circle
+    */
+    int2 centre = ((int2)circleDataBuffer[id.x].origin + circleDataBuffer[id.x].velocity * time) % float2(texResolution, texResolution);
+    int radius = (int)circleDataBuffer[id.x].radius;
+
     DrawCircle(centre, radius);
+}
+
+[numthreads(8,8,1)]
+void Clear(uint3 id: SV_DispatchThreadID) 
+{
+    Result[id.xy] = clearColour;
 }

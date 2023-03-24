@@ -1,0 +1,67 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+#define PI 3.14159265359
+
+RWTexture2D<float4> Result;
+float4 clearColour;
+float4 fillColour;
+float time;
+int texResolution;
+float radius;
+int numSides;
+float edgeThickness;
+
+#include "noiseSimplex.hlsl"
+
+/*pos - point that we're currently testing to see whether or not it is in the polygon'
+centre - centre of the polygon
+radius - radius of the largest circle circle that fits within the polygon
+numSides - number of sides in the polygon
+rotate - how much to rotate the polygon in radians
+edgeThickness - the thickness of the edges of the polygon
+*/
+float polygon(float2 pos, float2 centre, float radius, int numSides, float rotate, float edgeThickness)
+{
+    //shift the point we're testing to the origin'
+    pos -= centre;
+
+
+    float theta = atan2(pos.y, pos.x) + rotate; //angle from the current pixel
+    float rad = 2 * PI / (float)numSides; //radius from the current pixel 
+
+    //floor(float x) - returns the largest integer value not greater than x
+
+    //shaping function that modulates the distance
+    float d = cos(floor(0.5 + theta/rad)*rad - theta) * length(pos);
+    //smoothstep returns a smooth interpolation between 0 and 1 given a min and a max value. Essentially, the inverse of a lerp
+    return 1.0 - smoothstep(radius, radius + edgeThickness, d);
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+//1. Change the coordinate space of id.xy from (0,0)-(texResolution,texResolution) to (-0.5, -0.5)-(0.5,0.5)
+    float2 pos = float2( (((float2)id.xy)/(float)texResolution)-0.5 );
+    float2 centre = 0;
+
+    float poly = polygon(pos, centre, radius, numSides, time, edgeThickness);
+    
+    float noise = snoise(pos * 100);
+    Result[id.xy] = lerp(clearColour, fillColour * noise, poly);
+	
+	//2. Set the center to (0,0) and radius to 0.15
+	
+	//3. Call polygon using the pt you calculated at step 1, the center and radius from step 2. 
+	//   sides and time are passed from the C# script
+    
+    //4. Set noise. Use the snoise function and pt * 100
+    
+    //5. Use the HLSL function lerp to blend between clearColor and fillColor*noise using the return
+    //   value from step 3
+    
+
+    // = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+}
