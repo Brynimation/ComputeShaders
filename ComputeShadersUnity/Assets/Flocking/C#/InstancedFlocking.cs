@@ -1,7 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro.EditorUtilities;
-using UnityEditor.Build;
 using UnityEngine;
 
 public class InstancedFlocking : MonoBehaviour
@@ -100,7 +98,7 @@ public class InstancedFlocking : MonoBehaviour
     void Update()
     {
         Boid[] tempBoidArray = new Boid[numOfBoids];
-
+        
         if (Input.GetKeyDown(KeyCode.Space)) 
         {
             boidsBuffer.GetData(tempBoidArray);
@@ -111,6 +109,8 @@ public class InstancedFlocking : MonoBehaviour
 
         computeShader.Dispatch(kernelHandle, groupSizeX, 1, 1);
 
+        //https://docs.unity3d.com/ScriptReference/Graphics.DrawMeshInstancedIndirect.html
+        //Draws the same mesh with the same material multiple times. Bypasses the use of unity gameobjects and just draws directly to the screen.
         Graphics.DrawMeshInstancedIndirect(boidMesh, 0, boidMaterial, bounds, argsBuffer);
     }
 
