@@ -1,0 +1,40 @@
+#pragma kernel CSMain
+
+//We keep two buffers accessed by the kernel, a constant buffer that is the same for every computation,
+// and an output buffer that is written to by the kernel
+
+RWStructuredBuffer<float4> _Positions;
+RWStructuredBuffer<float4> cameraFrustumPlanes;
+float4 _CameraFrustumPlanes[6];
+
+//RWStructuredBuffer<float4> visibleList;
+RWStructuredBuffer<float4> visibleList;
+[numthreads(256,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	uint instanceId = id.x;
+	
+	float3 position = _Positions[instanceId].xyz;
+	
+	float4 CameraDistances0 = float4(
+			dot(_CameraFrustumPlanes[0].xyz, position) + _CameraFrustumPlanes[0].w,
+			dot(_CameraFrustumPlanes[1].xyz, position) + _CameraFrustumPlanes[1].w,
+			dot(_CameraFrustumPlanes[2].xyz, position) + _CameraFrustumPlanes[2].w,
+			dot(_CameraFrustumPlanes[3].xyz, position) + _CameraFrustumPlanes[3].w
+		);
+	
+	float2 CameraDistances1 = float2(
+			dot(_CameraFrustumPlanes[4].xyz, position) + _CameraFrustumPlanes[4].w,
+			dot(_CameraFrustumPlanes[5].xyz, position) + _CameraFrustumPlanes[5].w
+		);
+		
+	if(all(CameraDistances0 >= -2)
+		&& all(CameraDistances1 >= -2))
+	{
+		visibleList[instanceId] = _Positions[instanceId].xyzw;
+	}else{
+		visibleList[instanceId] = float4(-10,-10,-10, 1);
+	}
+
+
+}
