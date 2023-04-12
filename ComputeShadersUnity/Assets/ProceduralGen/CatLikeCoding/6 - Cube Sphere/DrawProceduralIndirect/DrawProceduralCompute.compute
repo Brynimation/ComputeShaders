@@ -1,0 +1,30 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWBuffer<uint> _IndexBuffer;
+RWStructuredBuffer<float3> _VertexBuffer;
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+/*
+        result.Add(new Vector3(-1.5f, 0, 0));
+        result.Add(new Vector3(1.5f, 0, 0));
+        result.Add(new Vector3(0, 0, 1.5f));
+*/
+    _VertexBuffer[0] = float3(-1.5, 0, 0);
+    _VertexBuffer[1] = float3(1.5, 0, 0);
+    _VertexBuffer[2] = float3(0, 0, 1.5);
+    _VertexBuffer[3] = float3(0, 0, -1.5);
+
+    _IndexBuffer[0] = 0;
+    _IndexBuffer[1] = 1;
+    _IndexBuffer[2] = 2;
+    
+    _IndexBuffer[3] = 0;
+    _IndexBuffer[4] = 1;
+    _IndexBuffer[5] = 3;
+
+}
