@@ -21,25 +21,27 @@ Shader "Custom/DrawProceduralTest"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
+            StructuredBuffer<float3> _Positions;
+            StructuredBuffer<float3> _VertexBuffer;
+            float4x4 _ModelMatrix;
 
-            StructuredBuffer<float3> vertArray;
-
-            /*float4x4 CreateMatrix(float3 pos, float3 dir, float3 up, uint id) {
+            float4x4 CreateMatrix(float3 pos, float3 dir, float3 up, uint id) {
                 float3 zaxis = normalize(dir);
                 float3 xaxis = normalize(cross(up, zaxis));
                 float3 yaxis = cross(zaxis, xaxis);
-                float scale = GenerateRandom(id) * _MaxStarSize;
+                //float scale = GenerateRandom(id) * _MaxStarSize;
                 //Transform the vertex into the object space of the currently drawn mesh using a Transform Rotation Scale matrix.
                 return float4x4(
-                    xaxis.x, yaxis.x, zaxis.x, pos.x,
-                    xaxis.y, yaxis.y, zaxis.y, pos.y,
-                    xaxis.z, yaxis.z, zaxis.z, pos.z,
+                    xaxis.x * 100, yaxis.x, zaxis.x, pos.x,
+                    xaxis.y, yaxis.y * 100, zaxis.y, pos.y,
+                    xaxis.z, yaxis.z, zaxis.z * 100, pos.z,
                     0, 0, 0, 1
                 );
-            }*/
+            }
             struct Attributes
             {
                 uint vertexId : SV_VERTEXID;
+                //float4 positionOS : POSITION;
                 uint instanceId : SV_INSTANCEID;
             };
 
@@ -51,7 +53,11 @@ Shader "Custom/DrawProceduralTest"
             Interpolators vert(Attributes i)
             {
                 Interpolators o;
-                VertexPositionInputs positionData = GetVertexPositionInputs(vertArray[i.vertexId]);
+                _ModelMatrix = CreateMatrix(float3(100.0, 100.0, 100.0), float3(1.0, 1.0, 1.0), float3(0.0, 1.0, 0.0), i.instanceId);
+                float4 vertexPosOS = mul(_ModelMatrix, _VertexBuffer[i.vertexId]);
+                float4 posWS = mul(unity_ObjectToWorld, vertexPosOS);
+                VertexPositionInputs positionData = GetVertexPositionInputs(vertexPosOS);
+                //o.positionHCS = mul(UNITY_MATRIX_VP, posWS);
                 o.positionHCS = positionData.positionCS;
                 return o;
             }
