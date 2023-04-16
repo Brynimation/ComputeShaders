@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
+
 public class DrawProceduralIndirect : MonoBehaviour
 {
     public Material MT;
@@ -31,14 +33,16 @@ public class DrawProceduralIndirect : MonoBehaviour
         MT.SetBuffer("_VertexBuffer", mVertexBuffer);
         MT.SetBuffer("_Positions", positionsBuffer);
         computeShader.SetBuffer(kernelIndex, "_VertexBuffer", mVertexBuffer);
+        computeShader.SetBuffer(kernelIndex, "_Positions", positionsBuffer);
         //mIndexBuffer.SetData(GetIndexData_List());
         computeShader.SetBuffer(kernelIndex, "_IndexBuffer", mIndexBuffer);
         computeShader.SetInt("_Resolution", Resolution);
+        computeShader.SetInt("_NumVertsPerInstance", numVertsPerInstance);
 
         positions = new Vector3[numInstances];
         for (int i = 0; i < numInstances; i++) 
         {
-            positions[i] = new Vector3(Random.Range(10, 1000), Random.Range(10, 1000), Random.Range(10, 1000));
+            positions[i] = new Vector3(Random.Range(1, 100), Random.Range(1, 100), Random.Range(1, 100));
         }
         //Additional arguments to DrawProceduralIndirect: bounds and the arguments buffer
         mBounds = new Bounds(Vector3.zero, new Vector3(1000, 1000, 1000));
@@ -48,7 +52,7 @@ public class DrawProceduralIndirect : MonoBehaviour
         // index-1 : instance count
         // index-2 : start vertex location
         // index-3 : start instance location
-        mArgBuffer.SetData(new int[] { numIndicesPerInstance, numInstances, 0, 0, 0 });
+        mArgBuffer.SetData(new int[] { numIndicesPerInstance, numInstances, 0, 0, 0});
     }
 
 

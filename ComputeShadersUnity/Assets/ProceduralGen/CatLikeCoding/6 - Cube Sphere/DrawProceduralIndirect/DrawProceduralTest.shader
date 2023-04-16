@@ -32,9 +32,9 @@ Shader "Custom/DrawProceduralTest"
                 //float scale = GenerateRandom(id) * _MaxStarSize;
                 //Transform the vertex into the object space of the currently drawn mesh using a Transform Rotation Scale matrix.
                 return float4x4(
-                    xaxis.x * 100, yaxis.x, zaxis.x, pos.x,
-                    xaxis.y, yaxis.y * 100, zaxis.y, pos.y,
-                    xaxis.z, yaxis.z, zaxis.z * 100, pos.z,
+                    xaxis.x * 10, yaxis.x, zaxis.x, 10,
+                    xaxis.y, yaxis.y * 10, zaxis.y, 10,
+                    xaxis.z, yaxis.z, zaxis.z * 10, 10,
                     0, 0, 0, 1
                 );
             }
@@ -53,8 +53,8 @@ Shader "Custom/DrawProceduralTest"
             Interpolators vert(Attributes i)
             {
                 Interpolators o;
-                _ModelMatrix = CreateMatrix(float3(100.0, 100.0, 100.0), float3(1.0, 1.0, 1.0), float3(0.0, 1.0, 0.0), i.instanceId);
-                float4 vertexPosOS = mul(_ModelMatrix, _VertexBuffer[i.vertexId]);
+                //_ModelMatrix = CreateMatrix(float3(200.0, 200.0, 200.0), float3(1.0, 1.0, 1.0), float3(0.0, 1.0, 0.0), i.instanceId);
+                float4 vertexPosOS = float4(_Positions[i.instanceId] + _VertexBuffer[i.vertexId], 1.0);
                 float4 posWS = mul(unity_ObjectToWorld, vertexPosOS);
                 VertexPositionInputs positionData = GetVertexPositionInputs(vertexPosOS);
                 //o.positionHCS = mul(UNITY_MATRIX_VP, posWS);
