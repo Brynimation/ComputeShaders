@@ -75,7 +75,7 @@ Shader "Custom/InstancedMat2"
                 float4 posWS = mul(unity_ObjectToWorld, posOS);
                 float3 normalOS = mul(_Matrix, i.normalOS);
                 o.normalWS = mul(unity_ObjectToWorld, normalOS);
-                o.positionHCS = (result == 1) ? mul(UNITY_MATRIX_VP, posWS) : float4(-10000,-10000,-10000, 0);
+                o.positionHCS = (result == 1) ? mul(UNITY_MATRIX_VP, posWS) : float4(-1,-1,-1, 0);
                 o.uv = i.uv;
                 return o;
             }
