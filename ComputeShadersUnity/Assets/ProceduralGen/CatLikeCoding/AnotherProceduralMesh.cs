@@ -20,14 +20,15 @@ public class AnotherProceduralMesh : MonoBehaviour
         MeshJob<PointyHexagonGrid, SingleStream>.ScheduleParallel,
         MeshJob<FlatHexagonGrid, SingleStream>.ScheduleParallel,
         MeshJob<UVSphere, SingleStream>.ScheduleParallel,
-        MeshJob<CubeSphere, SingleStream>.ScheduleParallel
+        MeshJob<CubeSphere, SingleStream>.ScheduleParallel,
+        MeshJob<SharedCubeSphere, PositionStream>.ScheduleParallel
 
     };
     [System.Flags]
     public enum GizmoMode {Nothing = 0, Vertices = 1, Normals = 0b10, Tangents =0b100 }
     public enum MeshType
     {
-        SquareGrid, SharedSquareGrid, SharedTriangleGrid, PointyHexagonGrid, FlatHexagonGrid, UVSphere, CubeSphere
+        SquareGrid, SharedSquareGrid, SharedTriangleGrid, PointyHexagonGrid, FlatHexagonGrid, UVSphere, CubeSphere, SharedCubeSphere
     }
 
     public GizmoMode gizmoMode;
